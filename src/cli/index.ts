@@ -1,4 +1,15 @@
 import { Command } from "commander";
+import ora from "ora";
+import { scanFiles } from "../scanner/fileScanner";
+import { loadFile } from "../scanner/fileLoader";
+import { runRegexDetector } from "../detectors/regexDetector";
+import { runKeywordDetector } from "../detectors/keywordDetector";
+import { runEntropyDetector } from "../detectors/entropyDetector";
+import { analyzeRisk } from "../analysis/riskAnalyzer";
+import { attachRecommendations } from "../analysis/recommendationEngine";
+import { printReport } from "../report/cliReporter";
+import { printJsonReport } from "../report/jsonReporter";
+import { Finding } from "../types/Finding";
 
 const program = new Command();
 
@@ -13,8 +24,46 @@ program
   .option("--json", "output results as JSON")
   .option("--verbose", "show extra detail for each finding")
   .option("--rules <path>", "path to custom rules file")
-  .action((scanPath, options) => {
-    console.log(`Scanning project at: ${scanPath}`);
+  .action(async (scanPath, options) => {
+    const spinner = ora(`Scanning ${scanPath}...`).start();
+
+    try {
+      const files = await scanFiles(scanPath);
+      spinner.text = `Found ${files.length} file(s), analyzing...`;
+
+      const allFindings: Finding[] = [];
+
+      for (const filePath of files) {
+        const loaded = loadFile(filePath);
+        if (!loaded) continue;
+
+        const findings = [
+          ...runRegexDetector(loaded),
+          ...runKeywordDetector(loaded),
+          ...runEntropyDetector(loaded),
+        ];
+
+        allFindings.push(...findings);
+      }
+
+      const analyzed = analyzeRisk(allFindings);
+      const withRecommendations = attachRecommendations(analyzed);
+
+      spinner.stop();
+
+      if (options.json) {
+        printJsonReport(withRecommendations);
+      } else {
+        printReport(withRecommendations);
+      }
+
+      const hasHigh = withRecommendations.some((f) => f.risk === "HIGH");
+      process.exit(hasHigh ? 1 : 0);
+    } catch (err) {
+      spinner.fail("Scan failed.");
+      console.error(err);
+      process.exit(1);
+    }
   });
 
 program.parse(process.argv);
