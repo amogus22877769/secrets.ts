@@ -25,7 +25,7 @@ program
   .option("--verbose", "show extra detail for each finding")
   .option("--rules <path>", "path to custom rules file")
   .action(async (scanPath, options) => {
-    const spinner = ora(`Scanning ${scanPath}...`).start();
+    const spinner = ora({ text: `Scanning ${scanPath}...`, stream: process.stderr }).start();
 
     try {
       const files = await scanFiles(scanPath);
