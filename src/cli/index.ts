@@ -14,6 +14,23 @@ import { copyBuiltReport } from "../report/htmlReport";
 import { Finding } from "../types/Finding";
 
 const program = new Command();
+const FAIL_ON_LEVELS = ["none", "low", "medium", "high"] as const;
+type FailOnLevel = (typeof FAIL_ON_LEVELS)[number];
+const FAIL_ON_RANK: Record<FailOnLevel, number> = {
+  none: 0,
+  low: 1,
+  medium: 2,
+  high: 3,
+};
+const RISK_RANK = { LOW: 1, MEDIUM: 2, HIGH: 3 } as const;
+
+function parseFailOnLevel(value: string): FailOnLevel {
+  const normalized = value.toLowerCase() as FailOnLevel;
+  if (!FAIL_ON_LEVELS.includes(normalized)) {
+    throw new Error(`Invalid --fail-on value "${value}". Use: ${FAIL_ON_LEVELS.join(", ")}`);
+  }
+  return normalized;
+}
 
 program
   .name("secret-scanner")
@@ -26,6 +43,7 @@ program
   .option("--json", "output results as JSON")
   .option("--verbose", "show extra detail for each finding")
   .option("--rules <path>", "path to custom rules file")
+  .option("--fail-on <level>", "exit with code 1 on findings at or above level: none|low|medium|high", "high")
   .action(async (scanPath, options) => {
     const spinner = ora({ text: `Scanning ${scanPath}...`, stream: process.stderr }).start();
     const startTime = Date.now();
@@ -64,8 +82,11 @@ program
         printSummary({ filesScanned: files.length, findings: withRecommendations, elapsedMs, reportPath, htmlReportPath });
       }
 
-      const hasHigh = withRecommendations.some((f) => f.risk === "HIGH");
-      process.exit(hasHigh ? 1 : 0);
+      const failOn = parseFailOnLevel(options.failOn);
+      const threshold = FAIL_ON_RANK[failOn];
+      const shouldFail =
+        threshold > 0 && withRecommendations.some((f) => RISK_RANK[f.risk] >= threshold);
+      process.exit(shouldFail ? 1 : 0);
     } catch (err) {
       spinner.fail("Scan failed.");
       console.error(err);

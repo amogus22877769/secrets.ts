@@ -16,7 +16,7 @@ npm install
 npm run build:report
 
 # 2) CLI-вывод (читаемый человеком)
-# test-project содержит преднамеренные HIGH-находки, поэтому код выхода будет 1
+# test-project содержит преднамеренные HIGH-находки, поэтому при --fail-on high код выхода будет 1
 npm run dev -- scan ./test-project
 
 # 3) JSON-вывод (для машинной обработки)
@@ -40,7 +40,7 @@ npx serve reports
 
 - `test-project/.gitlab-ci.yml`
 
-Job `secret_scan_should_fail` запускает сканирование `./test-project` и падает, если найдены `HIGH`-секреты (в `test-project` они есть намеренно).
+Job `secret_scan_should_fail` запускает сканирование `./test-project` и падает, если найдены секреты, попадающие под порог `--fail-on` (по умолчанию `high`).
 
 Команды для локального теста падения через `gitlab-ci-local`:
 
@@ -172,6 +172,21 @@ secret-scanner scan ./path/to/project --rules ./my-rules.yml
 
 ---
 
+### Порог падения (`--fail-on`)
+
+```bash
+secret-scanner scan ./path/to/project --fail-on medium
+```
+
+Доступные значения:
+
+- `high` (по умолчанию) - код `1`, если найдена хотя бы одна `HIGH`
+- `medium` - код `1`, если найдена хотя бы одна `MEDIUM` или `HIGH`
+- `low` - код `1`, если найдена любая находка (`LOW` и выше)
+- `none` - код `0` всегда (если не произошло внутренней ошибки сканирования)
+
+---
+
 ## HTML-отчет
 
 После каждого сканирования инструмент генерирует интерактивный HTML-отчет в папке `reports/`.
@@ -265,8 +280,8 @@ xdg-open reports/security-report.html    # Linux
 
 | Код | Значение |
 |---|---|
-| `0` | Сканирование завершено, находок с риском HIGH нет |
-| `1` | Обнаружена находка HIGH (удобно для падения CI-сборки) |
+| `0` | Сканирование завершено, находки ниже выбранного порога `--fail-on` |
+| `1` | Найдена уязвимость на уровне `--fail-on` или выше |
 | `1` | Ошибка сканирования (файл не найден и т.д.) |
 
 ---
@@ -279,10 +294,10 @@ xdg-open reports/security-report.html    # Linux
   run: |
     npm install
     npm run build
-    node dist/cli/index.js scan .
+    node dist/cli/index.js scan . --fail-on high
 ```
 
-Процесс завершится с кодом `1`, если найдены секреты уровня `HIGH`, из-за чего CI-задача автоматически завершится с ошибкой.
+Процесс завершится с кодом `1`, если найдены секреты на выбранном уровне `--fail-on` или выше.
 
 ---
 
