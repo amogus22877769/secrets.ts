@@ -7,7 +7,7 @@ import { runKeywordDetector } from "../detectors/keywordDetector";
 import { runEntropyDetector } from "../detectors/entropyDetector";
 import { analyzeRisk } from "../analysis/riskAnalyzer";
 import { attachRecommendations } from "../analysis/recommendationEngine";
-import { printReport } from "../report/cliReporter";
+import { printReport } from "../reporter/ConsoleReporter";
 import { printJsonReport, writeJsonReport } from "../report/jsonReporter";
 import { printSummary } from "../report/summary";
 import { copyBuiltReport } from "../report/htmlReport";
