@@ -26,6 +26,7 @@ program
   .option("--rules <path>", "path to custom rules file")
   .action(async (scanPath, options) => {
     const spinner = ora({ text: `Scanning ${scanPath}...`, stream: process.stderr }).start();
+    const startTime = Date.now();
 
     try {
       const files = await scanFiles(scanPath);
@@ -49,12 +50,13 @@ program
       const analyzed = analyzeRisk(allFindings);
       const withRecommendations = attachRecommendations(analyzed);
 
+      const elapsedMs = Date.now() - startTime;
       spinner.stop();
 
       if (options.json) {
         printJsonReport(withRecommendations);
       } else {
-        printReport(withRecommendations);
+        printReport(withRecommendations, files.length, elapsedMs);
       }
 
       const hasHigh = withRecommendations.some((f) => f.risk === "HIGH");
