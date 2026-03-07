@@ -8,7 +8,7 @@ import { runEntropyDetector } from "../detectors/entropyDetector";
 import { analyzeRisk } from "../analysis/riskAnalyzer";
 import { attachRecommendations } from "../analysis/recommendationEngine";
 import { printReport } from "../report/cliReporter";
-import { printJsonReport } from "../report/jsonReporter";
+import { printJsonReport, writeJsonReport } from "../report/jsonReporter";
 import { printSummary } from "../report/summary";
 import { Finding } from "../types/Finding";
 
@@ -57,8 +57,9 @@ program
       if (options.json) {
         printJsonReport(withRecommendations);
       } else {
+        const reportPath = writeJsonReport(withRecommendations);
         printReport(withRecommendations);
-        printSummary({ filesScanned: files.length, findings: withRecommendations, elapsedMs });
+        printSummary({ filesScanned: files.length, findings: withRecommendations, elapsedMs, reportPath });
       }
 
       const hasHigh = withRecommendations.some((f) => f.risk === "HIGH");
