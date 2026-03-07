@@ -23,7 +23,7 @@ npm run dev -- scan ./test-project
 npm run dev -- scan ./test-project --json
 
 # 4) Открыть веб-отчет
-# генерируется в reports/security-report.html на шаге 2
+# генерируется в reports/security-report.html на шаге 2 (надо нежать на security-report.html)
 npx serve reports
 ```
 
@@ -70,6 +70,7 @@ echo $?
 - Сводка сканирования с количеством находок по уровням критичности
 - Вывод JSON-отчета
 - Интерактивный HTML-отчет с карточками сводки, сортируемой таблицей, группировкой по файлам, темной темой и поиском
+- Использование в CI/CD
 
 ---
 
