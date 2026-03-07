@@ -71,6 +71,7 @@ echo $?
 - Вывод JSON-отчета
 - Интерактивный HTML-отчет с карточками сводки, сортируемой таблицей, группировкой по файлам, темной темой и поиском
 - Использование в CI/CD
+- Пропуск node_modules, dist и т.д.
 
 ---
 
@@ -106,7 +107,7 @@ npm link
 secret-scanner scan ./path/to/project
 ```
 
-Сканирует все файлы `.ts`, `.js`, `.json`, `.env`, `.yml`, `.yaml` и выводит отчет в стиле ESLint в терминал.
+Сканирует широкий набор текстовых форматов: исходники (`.ts`, `.tsx`, `.js`, `.jsx`, `.py`, `.java`, `.go`, `.rs`, `.php`, `.rb`, `.cs`, `.swift` и др.), конфиги (`.json`, `.jsonc`, `.yml`, `.yaml`, `.toml`, `.ini`, `.cfg`, `.conf`, `.xml`, `.properties`), IaC (`.tf`, `.tfvars`, `.hcl`), shell-скрипты (`.sh`, `.bash`, `.zsh`, `.ps1`, `.bat`) и документацию (`.md`, `.txt`, `.sql`), а также `.env*`.
 
 **Пример вывода:**
 
@@ -243,7 +244,18 @@ xdg-open reports/security-report.html    # Linux
 
 ## Сканируемые типы файлов
 
-`.ts` `.js` `.env` `.json` `.yml` `.yaml`, а также любой файл, чье имя начинается с `.env` (например, `.env.local`, `.env.production`).
+Поддерживаются основные форматы исходного кода, скриптов и конфигов:
+
+- JS/TS: `.js` `.jsx` `.mjs` `.cjs` `.ts` `.tsx` `.mts` `.cts`
+- Python/Ruby/PHP/Lua/Perl/R/Dart/Elm: `.py` `.rb` `.php` `.lua` `.pl` `.pm` `.r` `.dart` `.elm`
+- Java/Kotlin/Scala/.NET: `.java` `.kt` `.kts` `.scala` `.cs` `.vb` `.fs` `.fsx`
+- C/C++/ObjC/Rust/Go/Swift: `.c` `.h` `.cpp` `.cc` `.cxx` `.hpp` `.hh` `.hxx` `.m` `.mm` `.rs` `.go` `.swift`
+- Web: `.html` `.htm` `.css` `.scss` `.sass` `.less` `.vue` `.svelte` `.graphql` `.gql`
+- Конфиги и данные: `.json` `.jsonc` `.yaml` `.yml` `.toml` `.ini` `.cfg` `.conf` `.properties` `.xml`
+- IaC/build: `.tf` `.tfvars` `.hcl` `.gradle` `.sbt`
+- Прочие текстовые: `.md` `.txt` `.sql`
+- Файлы по имени: `Dockerfile`, `docker-compose`, `docker-compose.yml`, `docker-compose.yaml`, `Makefile`, `Jenkinsfile`, `Procfile`, `Gemfile`, `Rakefile`, `Vagrantfile`, `Brewfile`, `Podfile`
+- Любой файл, чье имя начинается с `.env` (например, `.env.local`, `.env.production`)
 
 Эти директории всегда пропускаются: `node_modules`, `dist`, `.git`, `coverage`, `.next`.
 
