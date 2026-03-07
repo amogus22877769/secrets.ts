@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:report": "cd report-ui && npm install && npm run build",
     "dev": "ts-node src/cli/index.ts",
     "start": "node dist/cli/index.js"
   },

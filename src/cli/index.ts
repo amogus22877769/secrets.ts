@@ -10,6 +10,7 @@ import { attachRecommendations } from "../analysis/recommendationEngine";
 import { printReport } from "../report/cliReporter";
 import { printJsonReport, writeJsonReport } from "../report/jsonReporter";
 import { printSummary } from "../report/summary";
+import { copyBuiltReport } from "../report/htmlReport";
 import { Finding } from "../types/Finding";
 
 const program = new Command();
@@ -58,8 +59,9 @@ program
         printJsonReport(withRecommendations);
       } else {
         const reportPath = writeJsonReport(withRecommendations);
+        const htmlReportPath = copyBuiltReport() ?? undefined;
         printReport(withRecommendations);
-        printSummary({ filesScanned: files.length, findings: withRecommendations, elapsedMs, reportPath });
+        printSummary({ filesScanned: files.length, findings: withRecommendations, elapsedMs, reportPath, htmlReportPath });
       }
 
       const hasHigh = withRecommendations.some((f) => f.risk === "HIGH");

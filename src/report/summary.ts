@@ -6,13 +6,14 @@ export interface ScanSummary {
   findings: Finding[];
   elapsedMs: number;
   reportPath?: string;
+  htmlReportPath?: string;
 }
 
 function pad(str: string, len: number): string {
   return str + " ".repeat(Math.max(0, len - str.length));
 }
 
-export function printSummary({ filesScanned, findings, elapsedMs, reportPath }: ScanSummary) {
+export function printSummary({ filesScanned, findings, elapsedMs, reportPath, htmlReportPath }: ScanSummary) {
   const elapsed = (elapsedMs / 1000).toFixed(2);
 
   const counts: Record<RiskLevel, number> = { HIGH: 0, MEDIUM: 0, LOW: 0 };
@@ -32,9 +33,10 @@ export function printSummary({ filesScanned, findings, elapsedMs, reportPath }: 
     console.log(`  ${pad("LOW", 8)} ${chalk.gray(String(counts.LOW))}`);
   }
 
-  if (reportPath) {
+  if (reportPath || htmlReportPath) {
     console.log();
-    console.log(`Report generated:   ${chalk.cyan(reportPath)}`);
+    if (reportPath) console.log(`Data:               ${chalk.cyan(reportPath)}`);
+    if (htmlReportPath) console.log(`HTML report:        ${chalk.cyan(htmlReportPath)}`);
   }
 
   console.log();
