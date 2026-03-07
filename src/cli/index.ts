@@ -9,6 +9,7 @@ import { analyzeRisk } from "../analysis/riskAnalyzer";
 import { attachRecommendations } from "../analysis/recommendationEngine";
 import { printReport } from "../report/cliReporter";
 import { printJsonReport } from "../report/jsonReporter";
+import { printSummary } from "../report/summary";
 import { Finding } from "../types/Finding";
 
 const program = new Command();
@@ -56,7 +57,8 @@ program
       if (options.json) {
         printJsonReport(withRecommendations);
       } else {
-        printReport(withRecommendations, files.length, elapsedMs);
+        printReport(withRecommendations);
+        printSummary({ filesScanned: files.length, findings: withRecommendations, elapsedMs });
       }
 
       const hasHigh = withRecommendations.some((f) => f.risk === "HIGH");

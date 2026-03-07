@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import chalk, { type ChalkInstance } from "chalk";
 import path from "path";
 import { Finding, RiskLevel } from "../types/Finding";
 
@@ -8,7 +8,7 @@ const SEVERITY_LABEL: Record<RiskLevel, string> = {
   LOW: "info",
 };
 
-const SEVERITY_COLOR: Record<RiskLevel, chalk.Chalk> = {
+const SEVERITY_COLOR: Record<RiskLevel, ChalkInstance> = {
   HIGH: chalk.red,
   MEDIUM: chalk.yellow,
   LOW: chalk.gray,
@@ -34,7 +34,7 @@ function groupByFile(findings: Finding[]): Map<string, Finding[]> {
   return map;
 }
 
-export function printReport(findings: Finding[], filesScanned = 0, elapsedMs = 0) {
+export function printReport(findings: Finding[]) {
   if (findings.length === 0) {
     console.log(chalk.green.bold("\n✔ No secrets found. Looks clean!\n"));
     return;
@@ -72,11 +72,6 @@ export function printReport(findings: Finding[], filesScanned = 0, elapsedMs = 0
   if (infos > 0) parts.push(chalk.gray(`${infos} info`));
 
   console.log(`${icon} ${chalk.bold(total + " problem" + (total !== 1 ? "s" : ""))} (${parts.join(", ")})`);
-
-  if (filesScanned > 0 || elapsedMs > 0) {
-    const elapsed = (elapsedMs / 1000).toFixed(2);
-    console.log(chalk.dim(`\nFiles scanned: ${filesScanned}  ·  Completed in ${elapsed}s`));
-  }
 
   console.log();
 }
