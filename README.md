@@ -1,30 +1,86 @@
-# Secret Leak Scanner
+# Сканер утечек секретов
 
-A CLI tool that scans source code for accidentally committed secrets — API keys, tokens, passwords, and private keys.
-
----
-
-## Features
-
-- Regex-based detection for known secret patterns (AWS, GitHub, Stripe, JWT, etc.)
-- Keyword detection for suspicious variable assignments (`password`, `api_key`, `token`, etc.)
-- Entropy analysis to catch random-looking strings that may be secrets
-- Risk classification: `HIGH`, `MEDIUM`, `LOW`
-- ESLint-style CLI output with file grouping and colored severity
-- Scan summary with per-severity counts
-- JSON report output
-- Interactive HTML report with summary cards, sortable table, file grouping, dark mode, and search
+CLI-инструмент, который сканирует исходный код на случайно закоммиченные секреты: API-ключи, токены, пароли и приватные ключи.
 
 ---
 
-## Requirements
+## Быстрый старт (среда разработки)
+
+Запустите эти команды из корня проекта, чтобы продемонстрировать все варианты вывода:
+
+```bash
+# 0) Установить зависимости
+npm install
+
+# 1) Собрать UI-бандл HTML-отчета
+npm run build:report
+
+# 2) CLI-вывод (читаемый человеком)
+# test-project содержит преднамеренные HIGH-находки, поэтому код выхода будет 1
+npm run dev -- scan ./test-project
+
+# 3) JSON-вывод (для машинной обработки)
+npm run dev -- scan ./test-project --json
+
+# 4) Открыть веб-отчет
+# генерируется в reports/security-report.html на шаге 2
+npx serve reports
+```
+
+Затем откройте URL, который выведет `serve`, и перейдите к:
+
+- `/security-report.html` для интерактивного отчета
+- `/report-data.json` для сырых данных сканирования
+
+---
+
+## GitLab CI (test-project)
+
+В репозитории добавлен демонстрационный пайплайн:
+
+- `test-project/.gitlab-ci.yml`
+
+Job `secret_scan_should_fail` запускает сканирование `./test-project` и падает, если найдены `HIGH`-секреты (в `test-project` они есть намеренно).
+
+Команды для локального теста падения через `gitlab-ci-local`:
+
+```bash
+# 0) Нужен Docker (gitlab-ci-local запускает image из .gitlab-ci.yml)
+docker --version
+
+# 1) Установить gitlab-ci-local (один из вариантов)
+npm i -g gitlab-ci-local
+
+# 2) Запустить только job, который должен упасть
+gitlab-ci-local --file test-project/.gitlab-ci.yml secret_scan_should_fail
+
+# 3) Проверить код завершения (ожидается 1)
+echo $?
+```
+
+---
+
+## Возможности
+
+- Обнаружение по regex для известных шаблонов секретов (AWS, GitHub, Stripe, JWT и т.д.)
+- Обнаружение по ключевым словам для подозрительных присваиваний (`password`, `api_key`, `token` и т.д.)
+- Анализ энтропии для поиска случайно выглядящих строк, которые могут быть секретами
+- Классификация риска: `HIGH`, `MEDIUM`, `LOW`
+- CLI-вывод в стиле ESLint с группировкой по файлам и цветами по критичности
+- Сводка сканирования с количеством находок по уровням критичности
+- Вывод JSON-отчета
+- Интерактивный HTML-отчет с карточками сводки, сортируемой таблицей, группировкой по файлам, темной темой и поиском
+
+---
+
+## Требования
 
 - Node.js 18+
 - npm
 
 ---
 
-## Installation
+## Установка
 
 ```bash
 git clone <repo-url>
@@ -33,7 +89,7 @@ npm install
 npm run build
 ```
 
-To use the `secret-scanner` command globally:
+Чтобы использовать команду `secret-scanner` глобально:
 
 ```bash
 npm link
@@ -41,17 +97,17 @@ npm link
 
 ---
 
-## Usage
+## Использование
 
-### Basic scan
+### Базовое сканирование
 
 ```bash
 secret-scanner scan ./path/to/project
 ```
 
-Scans all `.ts`, `.js`, `.json`, `.env`, `.yml`, `.yaml` files and prints an ESLint-style report to the terminal.
+Сканирует все файлы `.ts`, `.js`, `.json`, `.env`, `.yml`, `.yaml` и выводит отчет в стиле ESLint в терминал.
 
-**Example output:**
+**Пример вывода:**
 
 ```
 src/config.ts
@@ -78,13 +134,13 @@ Data:               reports/report-data.json
 HTML report:        reports/security-report.html
 ```
 
-### JSON output
+### JSON-вывод
 
 ```bash
 secret-scanner scan ./path/to/project --json
 ```
 
-Prints a JSON report to stdout. Useful for piping into other tools or CI pipelines.
+Печатает JSON-отчет в stdout. Удобно для пайпов в другие инструменты или CI-пайплайны.
 
 ```json
 {
@@ -104,108 +160,108 @@ Prints a JSON report to stdout. Useful for piping into other tools or CI pipelin
 }
 ```
 
-### Custom rules
+### Пользовательские правила
 
 ```bash
 secret-scanner scan ./path/to/project --rules ./my-rules.yml
 ```
 
-Point to a YAML file with additional regex rules to extend the default rule set.
+Укажите YAML-файл с дополнительными regex-правилами, чтобы расширить набор правил по умолчанию.
 
 ---
 
-## HTML Report
+## HTML-отчет
 
-The scanner generates an interactive HTML report in the `reports/` folder after each scan.
+После каждого сканирования инструмент генерирует интерактивный HTML-отчет в папке `reports/`.
 
-### Setup (one-time)
+### Подготовка (один раз)
 
-Build the report UI before using it:
+Перед использованием соберите UI отчета:
 
 ```bash
 npm run build:report
 ```
 
-This compiles the React app into `report-ui/dist/`. After that, every scan automatically copies the built files into `reports/` alongside the JSON data.
+Эта команда компилирует React-приложение в `report-ui/dist/`. После этого каждое сканирование автоматически копирует собранные файлы в `reports/` рядом с JSON-данными.
 
-### Opening the report
+### Открытие отчета
 
 ```bash
-# After running a scan, open the HTML file directly in a browser:
+# После запуска сканирования откройте HTML-файл напрямую в браузере:
 open reports/security-report.html        # macOS
 start reports/security-report.html       # Windows
-xdg-open reports/security-report.html   # Linux
+xdg-open reports/security-report.html    # Linux
 ```
 
-### Report features
+### Возможности отчета
 
-| Feature | Description |
+| Возможность | Описание |
 |---|---|
-| Summary cards | Total, High, Medium, Low finding counts |
-| Sortable table | Click any column header to sort |
-| File grouping | Switch to "By File" view to group findings by file path |
-| Search | Filter by file path, secret type, or code snippet |
-| Dark mode | Toggle in the top-right corner |
+| Карточки сводки | Общее количество, High, Medium, Low |
+| Сортируемая таблица | Нажмите на заголовок любого столбца для сортировки |
+| Группировка по файлам | Переключитесь в режим "By File", чтобы сгруппировать находки по путям файлов |
+| Поиск | Фильтрация по пути файла, типу секрета или фрагменту кода |
+| Темная тема | Переключатель в правом верхнем углу |
 
-> The report reads `report-data.json` from the same folder. Both files must be in the same directory.
+> Отчет читает `report-data.json` из той же папки. Оба файла должны находиться в одном каталоге.
 
 ---
 
-## Detection Methods
+## Методы обнаружения
 
-### 1. Regex detector
+### 1. Regex-детектор
 
-Matches known secret patterns against every line in every file.
+Сопоставляет известные шаблоны секретов с каждой строкой в каждом файле.
 
-| Rule | Type | Risk |
+| Правило | Тип | Риск |
 |---|---|---|
 | AWS access key | `AKIA...` | HIGH |
-| AWS secret key | 40-char base64 string | HIGH |
+| AWS secret key | 40-символьная base64-строка | HIGH |
 | GitHub token | `ghp_...` | HIGH |
 | GitHub OAuth token | `gho_...` | HIGH |
-| Private key header | `-----BEGIN ... PRIVATE KEY-----` | HIGH |
+| Заголовок приватного ключа | `-----BEGIN ... PRIVATE KEY-----` | HIGH |
 | JWT token | `eyJ...eyJ...` | HIGH |
 | Stripe live key | `sk_live_...` | HIGH |
 | SendGrid API key | `SG....` | HIGH |
 | Slack token | `xox[baprs]-...` | HIGH |
 | Generic API key | `api_key = "..."` | MEDIUM |
 
-### 2. Keyword detector
+### 2. Детектор ключевых слов
 
-Flags lines containing suspicious variable names (`password`, `secret`, `token`, `api_key`, `access_token`, `client_secret`, etc.) that also contain an assignment with a non-trivial value.
+Помечает строки, содержащие подозрительные имена переменных (`password`, `secret`, `token`, `api_key`, `access_token`, `client_secret` и т.д.), если в строке также есть присваивание с нетривиальным значением.
 
-Risk: `MEDIUM`
+Риск: `MEDIUM`
 
-### 3. Entropy detector
+### 3. Детектор энтропии
 
-Detects high-entropy strings (16+ characters) quoted in source code using Shannon entropy analysis. Catches secrets that don't match known patterns.
+Определяет строки с высокой энтропией (16+ символов), взятые в кавычки в исходном коде, на основе анализа энтропии Шеннона. Находит секреты, которые не соответствуют известным шаблонам.
 
-Risk: `LOW`
-
----
-
-## Scanned File Types
-
-`.ts` `.js` `.env` `.json` `.yml` `.yaml` and any file whose name starts with `.env` (e.g. `.env.local`, `.env.production`).
-
-The following directories are always skipped: `node_modules`, `dist`, `.git`, `coverage`, `.next`.
+Риск: `LOW`
 
 ---
 
-## Exit Codes
+## Сканируемые типы файлов
 
-| Code | Meaning |
+`.ts` `.js` `.env` `.json` `.yml` `.yaml`, а также любой файл, чье имя начинается с `.env` (например, `.env.local`, `.env.production`).
+
+Эти директории всегда пропускаются: `node_modules`, `dist`, `.git`, `coverage`, `.next`.
+
+---
+
+## Коды выхода
+
+| Код | Значение |
 |---|---|
-| `0` | Scan completed, no HIGH risk findings |
-| `1` | HIGH risk finding detected (useful for CI to fail the build) |
-| `1` | Scan error (file not found, etc.) |
+| `0` | Сканирование завершено, находок с риском HIGH нет |
+| `1` | Обнаружена находка HIGH (удобно для падения CI-сборки) |
+| `1` | Ошибка сканирования (файл не найден и т.д.) |
 
 ---
 
-## CI Integration
+## Интеграция с CI
 
 ```yaml
-# GitHub Actions example
+# Пример для GitHub Actions
 - name: Scan for secrets
   run: |
     npm install
@@ -213,25 +269,25 @@ The following directories are always skipped: `node_modules`, `dist`, `.git`, `c
     node dist/cli/index.js scan .
 ```
 
-The process exits with code `1` if any `HIGH` severity secrets are found, which will fail the CI job automatically.
+Процесс завершится с кодом `1`, если найдены секреты уровня `HIGH`, из-за чего CI-задача автоматически завершится с ошибкой.
 
 ---
 
-## Project Structure
+## Структура проекта
 
 ```
 secrets.ts/
 ├── src/
-│   ├── cli/           # CLI entry point (Commander)
-│   ├── scanner/       # File discovery and loading
-│   ├── detectors/     # Regex, keyword, entropy detectors
-│   ├── analysis/      # Risk classification and recommendations
-│   ├── rules/         # Default rule definitions
-│   ├── report/        # CLI reporter, JSON reporter, summary, HTML copy
-│   ├── types/         # Shared TypeScript types
-│   └── utils/         # File extension filter, entropy calculator
-├── report-ui/         # React + Vite + Tailwind HTML report UI
-├── reports/           # Generated output (created at scan time)
+│   ├── cli/           # Точка входа CLI (Commander)
+│   ├── scanner/       # Поиск файлов и их загрузка
+│   ├── detectors/     # Regex, keyword, entropy детекторы
+│   ├── analysis/      # Классификация риска и рекомендации
+│   ├── rules/         # Правила по умолчанию
+│   ├── report/        # CLI-репортер, JSON-репортер, сводка, копирование HTML
+│   ├── types/         # Общие TypeScript-типы
+│   └── utils/         # Фильтр расширений файлов, калькулятор энтропии
+├── report-ui/         # HTML-отчет на React + Vite + Tailwind
+├── reports/           # Сгенерированный вывод (создается во время сканирования)
 │   ├── report-data.json
 │   ├── security-report.html
 │   └── assets/
@@ -240,11 +296,11 @@ secrets.ts/
 
 ---
 
-## Scripts
+## Скрипты
 
-| Command | Description |
+| Команда | Описание |
 |---|---|
-| `npm run build` | Compile the CLI TypeScript to `dist/` |
-| `npm run build:report` | Install deps and build the React report UI |
-| `npm run dev` | Run the CLI directly with ts-node (no build step) |
-| `npm start` | Run the compiled CLI |
+| `npm run build` | Компилирует TypeScript CLI в `dist/` |
+| `npm run build:report` | Устанавливает зависимости и собирает React UI отчета |
+| `npm run dev` | Запускает CLI напрямую через ts-node (без шага сборки) |
+| `npm start` | Запускает скомпилированный CLI |

@@ -1,6 +1,5 @@
 node_modules/
 dist/
 *.js.map
-test-project/
 demo
 reports/

@@ -1,0 +1,13 @@
+{
+  "comment": "App credentials - should be in vault",
+  "privateKey": "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA2a2rwplBQLF29amygykEMmYz0+Kcj3bKBp29h1EXAMPLE\n-----END RSA PRIVATE KEY-----",
+  "opensshKey": "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABEXAMPLE\n-----END OPENSSH PRIVATE KEY-----",
+  "apiCredentials": {
+    "api_key": "abcdef1234567890abcdef12",
+    "access_token": "token-value-stored-here-1234"
+  },
+  "database": {
+    "password": "db-root-password-123",
+    "client_secret": "postgres-client-secret-xyz"
+  }
+}

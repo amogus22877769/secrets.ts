@@ -1,0 +1,20 @@
+stages:
+  - security
+
+secret_scan_should_fail:
+  stage: security
+  image: node:20
+  before_script:
+    - npm ci
+  script:
+    - |
+      TARGET_DIR="./test-project"
+      if [ ! -d "$TARGET_DIR" ]; then
+        TARGET_DIR="."
+      fi
+      npm run dev -- scan "$TARGET_DIR"
+  artifacts:
+    when: always
+    paths:
+      - reports/
+    expire_in: 1 week

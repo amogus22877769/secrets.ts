@@ -1,0 +1,26 @@
+name: Deploy Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS
+        env:
+          # HIGH - regex detector
+          AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
+          AWS_SECRET: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+      - name: Deploy
+        env:
+          # MEDIUM - keyword detector
+          AUTH_TOKEN: deploy-token-value-here
+          API_SECRET: pipeline-secret-abc123
+
+          # MEDIUM - generic api key regex
+          apikey: hardcoded-key-value-12345678
